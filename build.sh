@@ -1,0 +1,1 @@
+go build -ldflags "-s -w -X main.version=0.0.1" k8s-scheduler-extender-example

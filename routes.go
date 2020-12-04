@@ -26,12 +26,14 @@ func PredicateRoute(predicate Predicate) httprouter.Handle {
 
 		var buf bytes.Buffer
 		body := io.TeeReader(r.Body, &buf)
-		log.Print("info: ", predicate.Name, " ExtenderArgs = ", buf.String())
+		log.Print("info: ", predicate.Name)
 
 		var extenderArgs schedulerapi.ExtenderArgs
 		var extenderFilterResult *schedulerapi.ExtenderFilterResult
 
 		if err := json.NewDecoder(body).Decode(&extenderArgs); err != nil {
+			extenderArgBytes, _ := json.Marshal(extenderArgs)
+			log.Print("JSON is decoded： ", string(extenderArgBytes))
 			extenderFilterResult = &schedulerapi.ExtenderFilterResult{
 				Nodes:       nil,
 				FailedNodes: nil,
@@ -58,7 +60,7 @@ func PrioritizeRoute(prioritize Prioritize) httprouter.Handle {
 
 		var buf bytes.Buffer
 		body := io.TeeReader(r.Body, &buf)
-		log.Print("info: ", prioritize.Name, " ExtenderArgs = ", buf.String())
+		log.Print("info: ", prioritize.Name)
 
 		var extenderArgs schedulerapi.ExtenderArgs
 		var hostPriorityList *schedulerapi.HostPriorityList
@@ -67,11 +69,16 @@ func PrioritizeRoute(prioritize Prioritize) httprouter.Handle {
 			panic(err)
 		}
 
+		extenderArgBytes, _ := json.Marshal(extenderArgs)
+		log.Print("JSON is decoded： ", string(extenderArgBytes))
+
 		if list, err := prioritize.Handler(extenderArgs); err != nil {
 			panic(err)
 		} else {
 			hostPriorityList = list
 		}
+
+		log.Print("Result is generated.")
 
 		if resultBody, err := json.Marshal(hostPriorityList); err != nil {
 			panic(err)
